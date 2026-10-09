@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krefeld Pinguine — DEL Spielplan, Tabelle & Ergebnisse</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --border-color: #30363d;
+            --primary-yellow: #ffcc00; /* Pinguine Gelb */
+            --primary-yellow-hover: #ffdb4d;
+            --accent-green: #2ea043;
+            --accent-red: #f85149;
+            --pinguine-dark: #111111;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 0;
+            color: #ffffff;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        h2 span {
+            color: var(--primary-yellow);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .meta-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .api-badge {
+            color: #3fb950;
+            background: rgba(46, 160, 67, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(46, 160, 67, 0.3);
+            font-weight: 600;
+        }
+
+        .section-box {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            background-color: var(--pinguine-dark);
+            color: var(--primary-yellow);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-modal-open {
+            background: var(--primary-yellow);
+            color: #0d1117;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .btn-modal-open:hover { background: var(--primary-yellow-hover); }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .modal-card {
+            background: #161b22;
+            border: 1px solid var(--primary-yellow);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 650px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-body {
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .pinguine-badge-win {
+            background: rgba(46, 160, 67, 0.25);
+            color: #3fb950;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(46, 160, 67, 0.4);
+            font-weight: bold;
+        }
+        .pinguine-badge-draw {
+            background: rgba(227, 179, 64, 0.25);
+            color: #e3b341;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(227, 179, 64, 0.4);
+            font-weight: bold;
+        }
+        .pinguine-badge-loss {
+            background: rgba(248, 81, 73, 0.25);
+            color: #f85149;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .stat-card {
+            background: #161b22;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-yellow);
+            margin-top: 4px;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .matchday-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .matchday-btn {
+            background: #21262d;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .matchday-btn:hover { background: #333; border-color: var(--primary-yellow); }
+
+        .pinguine-highlight { color: var(--primary-yellow) !important; font-weight: bold; }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        th {
+            background-color: var(--pinguine-dark);
+            color: var(--primary-yellow);
+            padding: 10px 8px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--border-color);
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+        tr:hover { background-color: rgba(255,255,255,0.02); }
+
+        tr.pinguine-team-row td {
+            font-weight: bold;
+            color: var(--primary-yellow);
+            background: rgba(255, 204, 0, 0.15);
+        }
+
+        .btn-danger {
+            background: transparent;
+            border: none;
+            color: var(--accent-red);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="title-row">
+        <h2>Krefeld Pinguine <span>DEL</span></h2>
+    </div>
+    <div class="subtitle">PENNY DEL — Spielplan, Tabelle & Torschützen via OpenLigaDB</div>
+    <div class="meta-info">
+        <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
+        <span class="api-badge">● Live-Auto-Refresh (60s)</span>
+        <button class="matchday-btn" onclick="fetchAllData(true)" style="padding: 2px 8px; font-size: 0.75rem;" title="Daten sofort neu laden">🔄 Aktualisieren</button>
+    </div>
+
+    <div class="section-box">
+        <div class="section-header">
+            <span>Krefeld Pinguine — Saison-Auswertung</span>
+            <button class="btn-modal-open" onclick="openMatchesModal()">📅 Alle Spiele Pinguine</button>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="section-box">
+        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele & Ergebnisse</div>
+        <div class="matchday-controls">
+            <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
+            <strong id="matchdayDisplay" style="color: var(--primary-yellow); font-size: 1.1rem;">Spieltag 1</strong>
+            <button class="matchday-btn" onclick="changeMatchday(1)">Nächster Spieltag ▶</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 130px;">Termin</th>
+                        <th style="text-align: right;">Heimmannschaft</th>
+                        <th style="text-align: center; width: 220px;">Ergebnis / Status</th>
+                        <th>Gastmannschaft</th>
+                    </tr>
+                </thead>
+                <tbody id="matchdayTableBody">
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Spieldaten von OpenLigaDB...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section-box">
+        <div class="section-header">DEL Tabelle (Gesamt)</div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 35px;">Pl.</th>
+                        <th>Mannschaft</th>
+                        <th style="text-align: center;">Sp</th>
+                        <th style="text-align: center;">S</th>
+                        <th style="text-align: center;">U</th>
+                        <th style="text-align: center;">N</th>
+                        <th style="text-align: center;">Tore</th>
+                        <th style="text-align: center;">Diff</th>
+                        <th style="text-align: center;">Punkte</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Tabelle...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="matchesModal">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 1.1rem; color: #ffffff;">📅 Krefeld Pinguine — Alle Saisonspiele</div>
+            <button class="btn-danger" onclick="closeMatchesModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">ST</th>
+                            <th style="width: 90px;">Termin</th>
+                            <th style="text-align: right;">Heim</th>
+                            <th style="text-align: center; width: 70px;">Erg.</th>
+                            <th>Gast</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matchesModalBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <button class="btn-modal-open" style="margin-top: 15px; padding: 10px;" onclick="closeMatchesModal()">Schließen</button>
+    </div>
+</div>
+
+<script>
+    let currentMatchday = 1;
+    let openLigaMatches = {};
+    let detailedGoalsCache = {};
+    let isInitialLoad = true;
+
+    async function fetchAllData(showAlert = false) {
+        try {
+            let resMatches = await fetch('https://api.openligadb.de/getmatchdata/del/2026');
+            let dataMatches = await resMatches.json();
+
+            openLigaMatches = {};
+            let today = new Date();
+            let nearestMatchday = 1;
+            let minDateDiff = Infinity;
+
+            if (Array.isArray(dataMatches)) {
+                dataMatches.forEach(match => {
+                    let mDay = match.group && match.group.groupOrderID ? match.group.groupOrderID : 1;
+                    if (!openLigaMatches[mDay]) openLigaMatches[mDay] = [];
+
+                    let homeTeam = match.team1.teamName;
+                    let awayTeam = match.team2.teamName;
+
+                    let homeScore = null;
+                    let awayScore = null;
+
+                    if (match.matchIsFinished && match.matchResults && match.matchResults.length > 0) {
+                        let res = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length - 1];
+                        if (res) {
+                            homeScore = res.pointsTeam1;
+                            awayScore = res.pointsTeam2;
+                        }
+                    } else if (match.matchResults && match.matchResults.length > 0) {
+                        let res = match.matchResults[match.matchResults.length - 1];
+                        if (res && res.pointsTeam1 !== null && res.pointsTeam2 !== null) {
+                            homeScore = res.pointsTeam1;
+                            awayScore = res.pointsTeam2;
+                        }
+                    }
+
+                    let matchDateObj = new Date(match.matchDateTime);
+                    let dateStr = match.matchDateTime ? match.matchDateTime.split('T')[0] : "";
+                    let timeStr = !isNaN(matchDateObj.getTime()) ? matchDateObj.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : "19:30";
+
+                    if (!isNaN(matchDateObj.getTime())) {
+                        let diff = Math.abs(matchDateObj - today);
+                        if (diff < minDateDiff) {
+                            minDateDiff = diff;
+                            nearestMatchday = mDay;
+                        }
+                    }
+
+                    openLigaMatches[mDay].push({
+                        matchID: match.matchID,
+                        home: homeTeam,
+                        away: awayTeam,
+                        date: dateStr,
+                        time: timeStr,
+                        homeScore: homeScore,
+                        awayScore: awayScore,
+                        isFinished: match.matchIsFinished
+                    });
+                });
+            }
+
+            if (isInitialLoad) {
+                currentMatchday = nearestMatchday;
+                isInitialLoad = false;
+            }
+
+            if (showAlert) alert("DEL-Daten erfolgreich aktualisiert!");
+        } catch (e) {
+            console.error("Fehler beim Abrufen von OpenLigaDB:", e);
+            if (showAlert) alert("Fehler beim Abrufen der DEL-Live-Daten.");
+        }
+
+        renderAll();
+    }
+
+    async function fetchMatchDetails(matchID) {
+        if (detailedGoalsCache[matchID]) return detailedGoalsCache[matchID];
+        try {
+            let res = await fetch(`https://api.openligadb.de/getmatchdata/${matchID}`);
+            let matchData = await res.json();
+            let goalsList = [];
+            
+            let rawGoals = matchData.goals || matchData.matchGoals || [];
+            if (Array.isArray(rawGoals)) {
+                rawGoals.forEach(g => {
+                    let name = g.goalGetterName;
+                    let min = (g.matchMinute !== undefined && g.matchMinute !== null) ? g.matchMinute : (g.minute !== undefined ? g.minute : '');
+                    let scoreH = g.scoreTeam1 !== undefined && g.scoreTeam1 !== null ? g.scoreTeam1 : (g.scoreGoal1 !== undefined ? g.scoreGoal1 : 0);
+                    let scoreA = g.scoreTeam2 !== undefined && g.scoreTeam2 !== null ? g.scoreTeam2 : (g.scoreGoal2 !== undefined ? g.scoreGoal2 : 0);
+                    
+                    let minStr = min !== '' ? `${min}. Min` : '';
+                    let goalText = name ? `🏒 ${name}${minStr ? ' (' + minStr + ')' : ''} — <strong>(${scoreH}:${scoreA})</strong>` : `🏒 Tor${minStr ? ' (' + minStr + ')' : ''} — <strong>(${scoreH}:${scoreA})</strong>`;
+                    goalsList.push(goalText);
+                });
+            }
+            detailedGoalsCache[matchID] = goalsList;
+            return goalsList;
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function changeMatchday(amount) {
+        currentMatchday = Math.max(1, Math.min(52, currentMatchday + amount));
+        renderAll();
+    }
+
+    function renderAll() {
+        document.getElementById('matchdayDisplay').textContent = `Spieltag ${currentMatchday}`;
+        document.getElementById('matchdayTableHeader').textContent = `Spieltag ${currentMatchday} — DEL Spiele & Ergebnisse`;
+        
+        renderMatchdayTable();
+        renderTable();
+        renderStats();
+    }
+
+    async function renderMatchdayTable() {
+        let tbody = document.getElementById('matchdayTableBody');
+        tbody.innerHTML = '';
+        
+        let existingMatches = openLigaMatches[currentMatchday] || [];
+
+        if (existingMatches.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele für Spieltag ${currentMatchday} gefunden.</td></tr>`;
+            return;
+        }
+
+        for (let m of existingMatches) {
+            let hasResult = m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null;
+            let formattedDate = m.date ? m.date.split('-').reverse().join('.') : '-';
+            let timeStr = m.time ? ` ${m.time} Uhr` : '';
+            
+            let homeClass = m.home.includes("Krefeld") ? 'pinguine-highlight' : '';
+            let awayClass = m.away.includes("Krefeld") ? 'pinguine-highlight' : '';
+
+            let resultDisplay = hasResult 
+                ? `<strong>${m.homeScore}:${m.awayScore}</strong>` 
+                : `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
+
+            if (hasResult && m.isFinished) {
+                resultDisplay += '<div style="font-size: 0.65rem; color: #3fb950; margin-top: 2px;">(Endstand)</div>';
+            } else if (hasResult) {
+                resultDisplay += '<div style="font-size: 0.65rem; color: #e3b341; margin-top: 2px;">(Live)</div>';
+            }
+
+            let goalsHtml = '';
+            if (hasResult) {
+                let goals = await fetchMatchDetails(m.matchID);
+                if (goals.length > 0) {
+                    goalsHtml = `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">${goals.join('<br>')}</div>`;
+                }
+            }
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size: 0.8rem; color: #ffffff; font-weight: 500;">${formattedDate}${timeStr}</td>
+                <td class="${homeClass}" style="text-align: right;">${m.home}</td>
+                <td style="text-align: center;">${resultDisplay}${goalsHtml}</td>
+                <td class="${awayClass}">${m.away}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    function renderTable() {
+        let tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        let stats = {};
+        let allTeams = [];
+        Object.values(openLigaMatches).forEach(matchList => {
+            if (Array.isArray(matchList)) {
+                matchList.forEach(m => {
+                    if (!allTeams.includes(m.home)) allTeams.push(m.home);
+                    if (!allTeams.includes(m.away)) allTeams.push(m.away);
+                });
+            }
+        });
+
+        allTeams.forEach(t => {
+            stats[t] = { name: t, played: 0, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
+        });
+
+        Object.values(openLigaMatches).forEach(matchList => {
+            if (!Array.isArray(matchList)) return;
+            matchList.forEach(m => {
+                if (m.homeScore === undefined || m.homeScore === null || m.awayScore === undefined || m.awayScore === null) return;
+                let h = m.home, a = m.away;
+                if (!stats[h] || !stats[a]) return;
+
+                stats[h].played++;
+                stats[a].played++;
+                stats[h].goalsFor += m.homeScore;
+                stats[h].goalsAgainst += m.awayScore;
+                stats[a].goalsFor += m.awayScore;
+                stats[a].goalsAgainst += m.homeScore;
+
+                if (m.homeScore > m.awayScore) {
+                    stats[h].won++;
+                    stats[h].points += 3;
+                    stats[a].lost++;
+                } else if (m.homeScore < m.awayScore) {
+                    stats[a].won++;
+                    stats[a].points += 3;
+                    stats[h].lost++;
+                } else {
+                    stats[h].draw++;
+                    stats[h].points += 1;
+                    stats[a].draw++;
+                    stats[a].points += 1;
+                }
+            });
+        });
+
+        let sorted = Object.values(stats).sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            let diffB = b.goalsFor - b.goalsAgainst;
+            let diffA = a.goalsFor - a.goalsAgainst;
+            if (diffB !== diffA) return diffB - diffA;
+            return b.goalsFor - a.goalsFor;
+        });
+
+        if (sorted.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">Tabelle wird nach den ersten Spielen berechnet.</td></tr>`;
+            return;
+        }
+
+        sorted.forEach((s, idx) => {
+            let tr = document.createElement('tr');
+            if (s.name.includes("Krefeld")) tr.classList.add('pinguine-team-row');
+
+            let diff = s.goalsFor - s.goalsAgainst;
+
+            tr.innerHTML = `
+                <td><strong>${idx + 1}.</strong></td>
+                <td>${s.name}</td>
+                <td style="text-align: center;">${s.played}</td>
+                <td style="text-align: center;">${s.won}</td>
+                <td style="text-align: center;">${s.draw}</td>
+                <td style="text-align: center;">${s.lost}</td>
+                <td style="text-align: center;">${s.goalsFor}:${s.goalsAgainst}</td>
+                <td style="text-align: center;">${diff > 0 ? '+' : ''}${diff}</td>
+                <td style="text-align: center; font-weight: bold;">${s.points}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderStats() {
+        let played = 0, won = 0, draw = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, points = 0;
+
+        Object.values(openLigaMatches).forEach(matchList => {
+            if (!Array.isArray(matchList)) return;
+            matchList.forEach(m => {
+                let isHome = m.home.includes("Krefeld");
+                let isAway = m.away.includes("Krefeld");
+                if (!isHome && !isAway) return;
+
+                if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
+                    played++;
+                    let myG = isHome ? m.homeScore : m.awayScore;
+                    let oppG = isHome ? m.awayScore : m.homeScore;
+                    goalsFor += myG;
+                    goalsAgainst += oppG;
+
+                    if (myG > oppG) { won++; points += 3; }
+                    else if (myG === oppG) { draw++; points += 1; }
+                    else { lost++; }
+                }
+            });
+        });
+
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">${played}</div></div>
+            <div class="stat-card"><div class="stat-label">Siege</div><div class="stat-value" style="color: #3fb950;">${won}</div></div>
+            <div class="stat-card"><div class="stat-label">Remis</div><div class="stat-value" style="color: #e3b341;">${draw}</div></div>
+            <div class="stat-card"><div class="stat-label">Niederlagen</div><div class="stat-value" style="color: #f85149;">${lost}</div></div>
+            <div class="stat-card"><div class="stat-label">Tore</div><div class="stat-value">${goalsFor}:${goalsAgainst}</div></div>
+            <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
+        `;
+    }
+
+    function openMatchesModal() {
+        let modalBody = document.getElementById('matchesModalBody');
+        modalBody.innerHTML = '';
+
+        let pinguineMatches = [];
+        for (let mDay in openLigaMatches) {
+            let matchesArr = openLigaMatches[mDay];
+            if (Array.isArray(matchesArr)) {
+                matchesArr.forEach(m => {
+                    if (m.home.includes("Krefeld") || m.away.includes("Krefeld")) {
+                        pinguineMatches.push(Object.assign({ matchday: parseInt(mDay) }, m));
+                    }
+                });
+            }
+        }
+        pinguineMatches.sort((a, b) => a.matchday - b.matchday);
+
+        if (pinguineMatches.length === 0) {
+            modalBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele gefunden.</td></tr>`;
+        } else {
+            pinguineMatches.forEach(m => {
+                let hasResult = m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null;
+                let isHome = m.home.includes("Krefeld");
+                
+                let badgeClass = '';
+                if (hasResult) {
+                    let pinguineGoals = isHome ? m.homeScore : m.awayScore;
+                    let oppGoals = isHome ? m.awayScore : m.homeScore;
+
+                    if (pinguineGoals > oppGoals) badgeClass = 'pinguine-badge-win';
+                    else if (pinguineGoals === oppGoals) badgeClass = 'pinguine-badge-draw';
+                    else badgeClass = 'pinguine-badge-loss';
+                }
+
+                let homeDisplay = m.home;
+                let awayDisplay = m.away;
+
+                if (isHome) {
+                    homeDisplay = `<span class="${badgeClass}">${m.home}</span>`;
+                } else {
+                    awayDisplay = `<span class="${badgeClass}">${m.away}</span>`;
+                }
+
+                let resultDisplay = hasResult ? `<strong>${m.homeScore}:${m.awayScore}</strong>` : `<span style="color:var(--text-muted);">-:-</span>`;
+                let formattedDate = m.date ? m.date.split('-').reverse().join('.') : 'Offen';
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; color: var(--primary-yellow); font-weight: bold;">ST ${m.matchday}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">${formattedDate}</td>
+                    <td style="text-align: right;">${homeDisplay}</td>
+                    <td style="text-align: center;">${resultDisplay}</td>
+                    <td>${awayDisplay}</td>
+                `;
+                modalBody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('matchesModal').style.display = 'flex';
+    }
+
+    function closeMatchesModal() {
+        document.getElementById('matchesModal').style.display = 'none';
+    }
+
+    window.onclick = function(e) {
+        let modal = document.getElementById('matchesModal');
+        if (e.target === modal) {
+            closeMatchesModal();
+        }
+    }
+
+    // Initialer Abruf beim Start
+    fetchAllData();
+
+    // Auto-Refresh: Aktualisiert die DEL-Daten im Hintergrund alle 60 Sekunden für Live-Tore
+    setInterval(() => {
+        fetchAllData(false);
+    }, 60000);
+</script>
+
+</body>
+</html>
